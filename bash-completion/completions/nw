@@ -1,0 +1,24 @@
+_nw() {
+    local cur prev words cword split
+    _init_completion -s || return
+
+    case $prev in
+        set)
+            arr=($(cd /etc/networks && compgen -f -- "$cur"))
+            COMPREPLY=()
+            for ((i = 0; i < ${#arr[@]}; ++i)); do
+                file=${arr[i]}
+                if [[ ! -d /etc/networks/$file ]]; then
+                    COMPREPLY[i]=$file
+                fi
+            done
+
+            return
+            ;;
+    esac
+
+    $split && return
+
+    
+} &&
+    complete -F _nw nw

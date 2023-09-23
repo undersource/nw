@@ -1,0 +1,92 @@
+#!/bin/bash
+
+
+root() {
+    if [ "$EUID" -ne 0 ]; then
+        echo Permission denied
+        exit
+    fi
+}
+
+
+start() {
+    root
+    systemctl start $1
+}
+
+
+restart() {
+    root
+    systemctl restart $1
+}
+
+
+stop() {
+    root
+    systemctl stop $1
+}
+
+
+scan() {
+    root
+    iwlist $IFNAME scanning
+}
+
+
+setNetwork() {
+    root
+    cat /etc/networks/$1 > /etc/wpa_supplicant/wpa_supplicant-$IFNAME.conf
+    restart "wpa_supplicant@$IFNAME.service"
+}
+
+
+help() {
+    echo -e "Usage:
+    $0 command [option]\n
+Avaible commands:
+    start           Start network by default or tor / i2p
+    restart         Restart network by default or tor / i2p
+    stop            Stop network by default or tor / i2p
+    scan            Scan avaible wireless networks
+    set             Set active wireless network
+    help            Display help and exit"
+}
+
+
+if [ $# -le 2 ]; then
+    if [[ $1 == "start" ]]; then
+        if [[ $2 == "tor" ]]; then
+            start "tor"
+        elif [[ $2 == "i2p" ]]; then
+            start "i2pd"
+        else
+            start "wpa_supplicant@$IFNAME dhcpcd"
+        fi
+    elif [[ $1 == "restart" ]]; then
+        if [[ $2 == "tor" ]]; then
+            restart "tor"
+        elif [[ $2 == "i2p" ]]; then
+            restart "i2pd"
+        else
+            restart "wpa_supplicant@$IFNAME dhcpcd"
+        fi
+    elif [[ $1 == "stop" ]]; then
+        if [[ $2 == "tor" ]]; then
+            stop "tor"
+        elif [[ $2 == "i2p" ]]; then
+            stop "i2pd"
+        else
+            stop "wpa_supplicant@$IFNAME dhcpcd"
+        fi
+    elif [[ $1 == "scan" ]]; then
+        scan
+    elif [[ $1 == "set" ]]; then
+        setNetwork $2
+    elif [[ $1 == "help" ]]; then
+        help
+    else
+        echo Unknown argument, use \"help\"
+    fi
+else
+    help
+fi
