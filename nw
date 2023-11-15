@@ -1,5 +1,6 @@
 #!/bin/bash
 
+IFNAME=`ip -o link show | awk -F': ' '{print $2}' | tail -n 1`
 
 root() {
     if [ "$EUID" -ne 0 ]; then
